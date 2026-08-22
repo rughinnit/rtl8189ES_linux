@@ -418,9 +418,11 @@ u8 rtw_cfg80211_ch_switch_notify(_adapter *adapter, u8 ch, u8 bw, u8 offset, u8 
 	ret = rtw_chbw_to_cfg80211_chan_def(wiphy, &chdef, ch, bw, offset, ht);
 	if (ret != _SUCCESS)
 		goto exit;
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,3, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(6, 9, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0))
+	cfg80211_ch_switch_notify(adapter->pnetdev, &chdef, 0);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0))
 	cfg80211_ch_switch_notify(adapter->pnetdev, &chdef, 0, 0);
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(5,19, 2))
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 2))
 	cfg80211_ch_switch_notify(adapter->pnetdev, &chdef, 0);
 #else
 	cfg80211_ch_switch_notify(adapter->pnetdev, &chdef);
@@ -1750,7 +1752,7 @@ static int cfg80211_rtw_add_key(struct wiphy *wiphy,
 		goto addkey_end;
 	}
 
-	strncpy((char *)param->u.crypt.alg, alg_name, IEEE_CRYPT_ALG_NAME_LEN);
+	strscpy((char *)param->u.crypt.alg, alg_name, IEEE_CRYPT_ALG_NAME_LEN);
 
 
 	if (!mac_addr || is_broadcast_ether_addr(mac_addr)
@@ -4649,7 +4651,7 @@ static int rtw_cfg80211_add_monitor_if(_adapter *padapter, char *name, struct ne
 	}
 
 	mon_ndev->type = ARPHRD_IEEE80211_RADIOTAP;
-	strncpy(mon_ndev->name, name, IFNAMSIZ);
+	strscpy(mon_ndev->name, name, IFNAMSIZ);
 	mon_ndev->name[IFNAMSIZ - 1] = 0;
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 11, 8))
 	mon_ndev->priv_destructor = rtw_ndev_destructor;
@@ -6006,7 +6008,7 @@ static int	cfg80211_rtw_set_channel(struct wiphy *wiphy
 #endif /*#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 6, 0))*/
 
 static int cfg80211_rtw_set_monitor_channel(struct wiphy *wiphy
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0))
 	, struct net_device *dev
 	, struct cfg80211_chan_def *chandef
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0))
@@ -6653,7 +6655,11 @@ static s32 cfg80211_rtw_remain_on_channel(struct wiphy *wiphy,
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0))
 	enum nl80211_channel_type channel_type,
 #endif
-	unsigned int duration, u64 *cookie)
+	unsigned int duration, u64 *cookie
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0))
+	, const u8 *rx_addr
+#endif
+)
 {
 	s32 err = 0;
 	u8 remain_ch = (u8) ieee80211_frequency_to_channel(channel->center_freq);
