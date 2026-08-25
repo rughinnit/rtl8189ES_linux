@@ -12957,7 +12957,11 @@ ParseQualifiedString(
 		return _FALSE;
 
 	j = (*Start) - 2;
-	strscpy((char *)Out, (const char *)(In + i), j - i + 1);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0))
+	memcpy_and_pad(Out, j - i + 1, In + i, j - i + 1, '\0');
+#else
+	strncpy(Out, In + i, j - i + 1);
+#endif
 
 	return _TRUE;
 }

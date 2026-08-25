@@ -19,10 +19,6 @@
 #include <linux/spinlock.h>
 #include <linux/compiler.h>
 #include <linux/kernel.h>
-#include <linux/string.h>
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 3, 0))
-#define strscpy(dst, src, size) strncpy(dst, src, size)
-#endif
 #include <linux/errno.h>
 #include <linux/init.h>
 #include <linux/slab.h>

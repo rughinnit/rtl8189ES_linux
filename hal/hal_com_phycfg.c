@@ -4926,9 +4926,15 @@ PHY_ConfigRFWithTxPwrTrackParaFile(
 				if (strlen(szLine) < 10 || szLine[0] != '[')
 					continue;
 
-				strscpy(band, szLine + 1, 2);
-				strscpy(path, szLine + 5, 1);
-				strscpy(sign, szLine + 8, 1);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0))
+				memcpy_and_pad(band, sizeof(band), szLine + 1, 2, '\0');
+				memcpy_and_pad(path, sizeof(path), szLine + 5, 1, '\0');
+				memcpy_and_pad(sign, sizeof(sign), szLine + 8, 1, '\0');
+#else
+				strncpy(band, szLine + 1, 2);
+				strncpy(path, szLine + 5, 1);
+				strncpy(sign, szLine + 8, 1);
+#endif
 
 				i = 10; /* szLine+10 */
 				if (!ParseQualifiedString(szLine, &i, rate, '[', ']')) {

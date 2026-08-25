@@ -4429,7 +4429,11 @@ bool rtw_wowlan_parser_pattern_cmd(u8 *input, char *pattern,
 		} else {
 			u8 hex;
 
-			strscpy(member, input, len);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0))
+			memcpy_and_pad(member, sizeof(member), input, len, '\0');
+#else
+			strncpy(member, input, len);
+#endif
 			if (!rtw_check_pattern_valid(member, sizeof(member))) {
 				RTW_INFO("%s:[ERROR] pattern is invalid!!\n",
 					 __func__);

@@ -37,13 +37,21 @@ static void dump_mac_page0(PADAPTER padapter)
 		p = &str_out[0];
 		len = snprintf(str_val, sizeof(str_val),
 			       "0x%02x: ", index);
-		strscpy(str_out, str_val, len);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0))
+		memcpy_and_pad(str_out, len, str_val, len, '\0');
+#else
+		strncpy(str_out, str_val, len);
+#endif
 		p += len;
 
 		for (i = 0 ; i < 16 ; i++) {
 			len = snprintf(str_val, sizeof(str_val), "%02x ",
 				       rtw_read8(padapter, index + i));
-			strscpy(p, str_val, len);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0))
+			memcpy_and_pad(p, len, str_val, len, '\0');
+#else
+			strncpy(p, str_val, len);
+#endif
 			p += len;
 		}
 		RTW_INFO("%s\n", str_out);
